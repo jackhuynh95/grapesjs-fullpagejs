@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrapesJS + FullPage.js Integration</title>
+
+  <!-- GrapesJS CSS -->
+  <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
+
+  <!-- FullPage.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.css">
+
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #gjs {
+      border: 2px dashed #ccc;
+    }
+    #fullpage {
+      display: none; /* Hidden until preview is triggered */
+    }
+    .preview-button {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .preview-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <!-- GrapesJS Editor Container -->
+  <div id="gjs"></div>
+
+  <!-- FullPage.js Output Container -->
+  <div id="fullpage"></div>
+
+  <!-- Preview Button -->
+  <button class="preview-button" id="previewButton">Preview FullPage</button>
+
+  <!-- GrapesJS JS -->
+  <script src="https://unpkg.com/grapesjs"></script>
+
+  <!-- FullPage.js JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.js"></script>
+
+  <script>
+    // Initialize GrapesJS
+    const editor = grapesjs.init({
+      container: '#gjs', // The container where GrapesJS will render
+      height: '100%',
+      storageManager: false, // Disable storage for simplicity
+    //   panels: { defaults: [] }, // Disable default panels
+      plugins: [],
+      canvas: {
+        styles: [
+          'https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.css'
+        ]
+      }
+    });
+
+    // Add a block for FullPage.js sections
+    editor.BlockManager.add('fullpage-section', {
+      label: 'FullPage Section',
+      content: `<div class="section" style="text-align: center; padding: 50px; background-color: #f0f0f0;">
+                  <h1>Section Title</h1>
+                  <p>Content goes here...</p>
+                </div>`
+    });
+
+    // Add a block for a section with a background image
+    editor.BlockManager.add('image-section', {
+      label: 'Image Background Section',
+      content: `<div class="section" style="text-align: center; padding: 50px; background-image: url('https://placehold.co/1920x1080'); background-size: cover; color: white;">
+                  <h1>Image Background</h1>
+                  <p>Content goes here...</p>
+                </div>`
+    });
+
+    // Handle Preview Button Click
+    document.getElementById('previewButton').addEventListener('click', () => {
+      const exportedHtml = editor.getHtml(); // Get the HTML from GrapesJS
+      const exportedCss = editor.getCss(); // Get the CSS from GrapesJS
+
+      // Inject the exported HTML and CSS into the FullPage.js container
+      const fullpageContainer = document.getElementById('fullpage');
+      fullpageContainer.innerHTML = exportedHtml;
+
+      // Dynamically add the exported CSS to the <head>
+      const styleTag = document.createElement('style');
+      styleTag.innerHTML = exportedCss;
+      document.head.appendChild(styleTag);
+
+      // Show the FullPage.js container
+      fullpageContainer.style.display = 'block';
+
+      // Initialize FullPage.js
+      new fullpage('#fullpage', {
+        autoScrolling: true,
+        scrollHorizontally: true,
+        navigation: true,
+        navigationPosition: 'right'
+      });
+    });
+  </script>
+</body>
+</html>

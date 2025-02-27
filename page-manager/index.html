@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrapesJS + FullPage.js with Child Slides</title>
+
+  <!-- GrapesJS CSS -->
+  <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
+
+  <!-- FullPage.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+    }
+    #gjs {
+      border: 2px dashed #ccc;
+    }
+    #fullpage {
+      display: none; /* Hidden until preview is triggered */
+    }
+    .preview-button {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .preview-button:hover {
+      background-color: #0056b3;
+    }
+    .page-switcher {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: white;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .page-button {
+      margin: 5px;
+      padding: 5px 10px;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .page-button.active {
+      background: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- GrapesJS Editor Container -->
+  <div id="gjs"></div>
+
+  <!-- FullPage.js Output Container -->
+  <div id="fullpage"></div>
+
+  <!-- Preview Button -->
+  <button class="preview-button" id="previewButton">Preview FullPage</button>
+
+  <!-- Page Switcher -->
+  <div class="page-switcher" id="pageSwitcher">
+    <strong>Switch Pages:</strong>
+    <div id="pageButtons"></div>
+  </div>
+
+  <!-- GrapesJS JS -->
+  <script src="https://unpkg.com/grapesjs"></script>
+
+  <!-- FullPage.js JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.js"></script>
+
+  <script>
+    // Initialize GrapesJS with PageManager
+    const editor = grapesjs.init({
+      container: '#gjs', // The container where GrapesJS will render
+      height: '100%',
+      storageManager: false, // Disable storage for simplicity
+    //   panels: { defaults: [] }, // Disable default panels
+      plugins: [],
+      pageManager: {
+        pages: [
+          {
+            id: 'page-1',
+            styles: `.my-class { color: red; }`,
+            component: `<div class="section my-class" style="text-align: center; padding: 50px; background-color: #f0f0f0;">
+                          <h1>Page 1</h1>
+                          <p>This is the first section.</p>
+                          <div class="slide" style="background-color: #ffeb3b; text-align: center; padding: 50px;">
+                            <h2>Slide 1</h2>
+                            <p>This is the first slide of Page 1.</p>
+                          </div>
+                          <div class="slide" style="background-color: #ff9800; text-align: center; padding: 50px;">
+                            <h2>Slide 2</h2>
+                            <p>This is the second slide of Page 1.</p>
+                          </div>
+                        </div>`
+          },
+          {
+            id: 'page-2',
+            styles: `.my-class { color: blue; }`,
+            component: `<div class="section my-class" style="text-align: center; padding: 50px; background-image: url('https://via.placeholder.com/1920x1080'); background-size: cover; color: white;">
+                          <h1>Page 2</h1>
+                          <p>This is the second section with a background image.</p>
+                          <div class="slide" style="background-color: #2196f3; text-align: center; padding: 50px;">
+                            <h2>Slide 1</h2>
+                            <p>This is the first slide of Page 2.</p>
+                          </div>
+                        </div>`
+          },
+          {
+            id: 'page-3',
+            styles: `.my-class { color: green; }`,
+            component: `<div class="section my-class" style="text-align: center; padding: 50px; background-color: #333; color: white;">
+                          <h1>Page 3</h1>
+                          <p>This is the third section with a dark theme.</p>
+                          <div class="slide" style="background-color: #4caf50; text-align: center; padding: 50px;">
+                            <h2>Slide 1</h2>
+                            <p>This is the first slide of Page 3.</p>
+                          </div>
+                          <div class="slide" style="background-color: #e91e63; text-align: center; padding: 50px;">
+                            <h2>Slide 2</h2>
+                            <p>This is the second slide of Page 3.</p>
+                          </div>
+                        </div>`
+          }
+        ]
+      }
+    });
+
+    // Track the currently selected page
+    let currentPageId = 'page-1';
+
+    // Function to update the page switcher UI
+    function updatePageSwitcherUI() {
+      const pageButtonsContainer = document.getElementById('pageButtons');
+      pageButtonsContainer.innerHTML = ''; // Clear existing buttons
+
+      // Get all pages from PageManager
+      const pages = editor.Pages.getAll();
+
+      pages.forEach(page => {
+        const button = document.createElement('button');
+        button.className = 'page-button';
+        button.innerText = `Page ${page.getId().split('-')[1]}`;
+        button.onclick = () => {
+          // Switch to the selected page
+          editor.Pages.select(page.getId());
+          currentPageId = page.getId();
+
+          // Mark the button as active
+          document.querySelectorAll('.page-button').forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+        };
+
+        // Highlight the currently selected page
+        if (page.getId() === currentPageId) {
+          button.classList.add('active');
+        }
+
+        pageButtonsContainer.appendChild(button);
+      });
+    }
+
+    // Listen for page changes to update the UI
+    editor.on('page:selected', () => {
+      updatePageSwitcherUI();
+    });
+
+    // Initialize the page switcher UI
+    updatePageSwitcherUI();
+
+    // Handle Preview Button Click
+    document.getElementById('previewButton').addEventListener('click', () => {
+      // Collect all pages and their content
+      const pages = editor.Pages.getAll();
+      let fullPageHtml = '';
+
+      pages.forEach(page => {
+        const pageComponent = page.getMainComponent();
+        const pageHtml = pageComponent.toHTML(); // Get the HTML of the page
+
+        // Wrap slides in a <div class="fp-slides"> container
+        const parsedHtml = new DOMParser().parseFromString(pageHtml, 'text/html');
+        const slides = Array.from(parsedHtml.querySelectorAll('.slide'));
+
+        if (slides.length > 0) {
+          const slidesHtml = slides.map(slide => slide.outerHTML).join('');
+          fullPageHtml += `
+            <div class="section">
+              <div class="fp-slides">
+                <div class="fp-slidesContainer">
+                  ${slidesHtml}
+                </div>
+              </div>
+            </div>`;
+        } else {
+          fullPageHtml += `<div class="section">${pageHtml}</div>`;
+        }
+      });
+
+      // Inject the collected HTML into the FullPage.js container
+      const fullpageContainer = document.getElementById('fullpage');
+      fullpageContainer.innerHTML = fullPageHtml;
+
+      // Dynamically add the exported CSS to the <head>
+      const styleTag = document.createElement('style');
+      styleTag.innerHTML = editor.getCss();
+      document.head.appendChild(styleTag);
+
+      // Show the FullPage.js container
+      fullpageContainer.style.display = 'block';
+
+      // Initialize FullPage.js
+      new fullpage('#fullpage', {
+        autoScrolling: true,
+        scrollHorizontally: true,
+        navigation: true,
+        navigationPosition: 'right',
+        slidesNavigation: true // Enable navigation for horizontal slides
+      });
+    });
+  </script>
+</body>
+</html>
